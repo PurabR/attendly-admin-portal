@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import QRCode from 'react-qr-code';
-import './Dashboard.css'; // We'll create this file next
+import './Dashboard.css';
 
 function Dashboard() {
   // We explicitly tell TypeScript that 'qrValue' is a string
@@ -17,32 +17,60 @@ function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
-      <h2>Teacher's Dashboard</h2>
+    <div className="dashboard-page">
+      <div className="gradient-bg" />
+      <header className="dashboard-header mount-fade">
+        <div>
+          <h1 className="dash-title">Welcome back 👋</h1>
+          <p className="dash-subtitle">Here’s what’s happening today</p>
+        </div>
+        <div className="dash-actions">
+          <button className="btn primary" onClick={generateQR} disabled={qrValue !== ''}>
+            {qrValue ? 'QR Active' : 'Generate QR'}
+          </button>
+          <button className="btn ghost" onClick={() => alert('Navigate to Tasks page...')}>Assign Task</button>
+        </div>
+      </header>
+
+      <section className="stats-grid mount-rise">
+        <div className="stat">
+          <div className="stat-value">96%</div>
+          <div className="stat-label">Avg. Attendance</div>
+        </div>
+        <div className="stat">
+          <div className="stat-value">3</div>
+          <div className="stat-label">Pending Tasks</div>
+        </div>
+        <div className="stat">
+          <div className="stat-value">28</div>
+          <div className="stat-label">Students Present</div>
+        </div>
+      </section>
 
       <div className="dashboard-grid">
         <Card title="Generate Attendance QR Code">
           <p>Click the button to generate a unique, 30-second QR code for your class.</p>
-          <button onClick={generateQR} disabled={qrValue !== ''}>
-            {qrValue ? 'QR Code Active...' : 'Generate QR Code'}
+          <button className="btn primary" onClick={generateQR} disabled={qrValue !== ''}>
+            {qrValue ? 'QR Code Active…' : 'Generate QR Code'}
           </button>
 
           <div className="qr-container">
             {qrValue ? (
               <div style={{ textAlign: 'center' }}>
-                <QRCode value={qrValue} size={200} />
-                <p style={{color: 'red', marginTop: '10px'}}>Expires in 30 seconds</p>
+                <div className="qr-wrap mount-rise">
+                  <QRCode value={qrValue} size={200} />
+                </div>
+                <p className="qr-expire">Expires in 30 seconds</p>
               </div>
             ) : (
-              <p>QR code will appear here.</p>
+              <p className="qr-placeholder">QR code will appear here.</p>
             )}
           </div>
         </Card>
 
         <Card title="Assign Task">
           <p>Quickly assign a new task or announcement to your classes.</p>
-          {/* This would link to the Tasks page or open a modal */}
-          <button onClick={() => alert('Navigate to Tasks page...')}>Assign New Task</button>
+          <button className="btn ghost" onClick={() => alert('Navigate to Tasks page...')}>Assign New Task</button>
         </Card>
       </div>
     </div>

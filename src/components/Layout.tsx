@@ -7,7 +7,7 @@ function Layout() {
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar />
-      <main style={{ flexGrow: 1, padding: '20px' }}>
+      <main style={{ flexGrow: 1, padding: '20px', backgroundColor: '#0b1220', minHeight: '100vh' }}>
         {/* This Outlet is where our pages (Dashboard, etc.) will be rendered */}
         <Outlet /> 
       </main>
