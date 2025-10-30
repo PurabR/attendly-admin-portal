@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Card from '../components/Card';
 import QRCode from 'react-qr-code';
 import './Dashboard.css';
@@ -6,15 +6,44 @@ import './Dashboard.css';
 function Dashboard() {
   // We explicitly tell TypeScript that 'qrValue' is a string
   const [qrValue, setQrValue] = useState<string>('');
+  const [secondsLeft, setSecondsLeft] = useState<number>(0);
+  const countdownRef = useRef<number | null>(null);
 
   const generateQR = () => {
     // In a real app, you'd call your backend to get a unique token
     const uniqueToken = `CLASS_CS701_TIME_${Date.now()}`;
     setQrValue(uniqueToken);
+    setSecondsLeft(30);
 
-    // QR code will auto-expire after 30 seconds
-    setTimeout(() => setQrValue(''), 30000); 
+    // Clear any existing countdown
+    if (countdownRef.current) {
+      window.clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    // QR code will auto-expire after 30 seconds and countdown every 1s
+    countdownRef.current = window.setInterval(() => {
+      setSecondsLeft((prev) => {
+        const next = Math.max(prev - 1, 0);
+        if (next === 0) {
+          // Stop interval and clear QR
+          if (countdownRef.current) {
+            window.clearInterval(countdownRef.current);
+            countdownRef.current = null;
+          }
+          setQrValue('');
+        }
+        return next;
+      });
+    }, 1000);
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) window.clearInterval(countdownRef.current);
+    };
+  }, []);
 
   return (
     <div className="dashboard-page">
@@ -60,7 +89,7 @@ function Dashboard() {
                 <div className="qr-wrap mount-rise">
                   <QRCode value={qrValue} size={200} />
                 </div>
-                <p className="qr-expire">Expires in 30 seconds</p>
+                <p className="qr-expire">Expires in <span className="countdown">{secondsLeft}</span> seconds</p>
               </div>
             ) : (
               <p className="qr-placeholder">QR code will appear here.</p>
