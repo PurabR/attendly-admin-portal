@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+import logoImage from '../images/logo.png';
 
 function Login() {
   const ADMIN_USERNAME = 'admin';
@@ -35,9 +36,16 @@ function Login() {
       <div className="gradient-bg" />
       <div className="auth-grid">
         <section className="auth-hero">
+          <div className="logo-container mount-fade">
+            <img 
+              src={logoImage} 
+              alt="University of Gauhati" 
+              className="university-logo"
+            />
+          </div>
           <div className="brand-badge">Attendly</div>
           <h1 className="hero-title">
-            Welcome back, Teacher
+            Welcome back, Professor
           </h1>
           <p className="hero-subtitle">
             Sign in to manage attendance, tasks, and insights — all in one place.

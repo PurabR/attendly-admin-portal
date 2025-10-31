@@ -32,22 +32,87 @@
 .auth-hero {
   color: #e5e7eb;
   align-self: center;
+  text-align: center;
+}
+
+/* Logo Container */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.university-logo {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(99, 102, 241, 0.3));
+  animation: logoGlow 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.university-logo:hover {
+  transform: scale(1.05);
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 8px 24px rgba(99, 102, 241, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 12px 32px rgba(99, 102, 241, 0.5));
+  }
 }
 
 .brand-badge {
-  display: inline-block;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.5rem;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
   color: #ffffff;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(59, 130, 246, 0.2));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  text-transform: uppercase;
+  margin: 0 auto 0.5rem auto; /* center horizontally */
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.brand-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.brand-badge:hover::before {
+  left: 100%;
+}
+
+.brand-badge:hover {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .hero-title {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.1;
   color: #ffffff;
@@ -56,6 +121,7 @@
 .hero-subtitle {
   margin-top: 0.75rem;
   color: #cbd5e1;
+  text-align: center;
 }
 
 .hero-highlights {
@@ -63,6 +129,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .chip {
@@ -229,6 +296,16 @@
   color: #cbd5e1;
 }
 
+/* Mount animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mount-fade {
+  animation: fadeIn 600ms ease forwards;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .auth-grid {
@@ -240,5 +317,9 @@
   }
   .hero-highlights {
     justify-content: center;
+  }
+  .university-logo {
+    width: 120px;
+    height: 120px;
   }
 }
