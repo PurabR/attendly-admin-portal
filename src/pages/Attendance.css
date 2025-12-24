@@ -1,95 +1,68 @@
-/* Attendance page uses the same modern look as dashboard */
-.attendance-page {
-  position: relative;
-  min-height: calc(100vh - 40px);
-  padding: 12px 4px;
-  color: #e5e7eb;
-  background-color: #0b1220;
-  overflow: hidden;
+/* Keep your existing CSS, but add these for the expandable list */
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px 0;
 }
 
-.gradient-bg {
-  position: absolute;
-  inset: -10% -10% -10% -10%;
-  background: radial-gradient(900px 500px at 0% 10%, rgba(99, 102, 241, 0.18), transparent),
-              radial-gradient(900px 600px at 100% 0%, rgba(59, 130, 246, 0.18), transparent);
-  filter: blur(80px) saturate(120%);
-  opacity: 0.6;
-  pointer-events: none;
+.session-info h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
 }
 
-/* Reuse dashboard header and stats styles for consistency */
-.dashboard-header {
-  position: relative;
+.session-date {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.expand-icon {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-left: 10px;
+}
+
+/* The box that opens up */
+.session-details {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.student-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.student-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
 }
 
-.dash-title { margin: 0; color: #ffffff; font-size: 1.75rem; }
-.dash-subtitle { margin-top: 4px; color: #cbd5e1; }
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+.student-avatar {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: white;
 }
-
-.stat {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-}
-
-.stat-value { font-size: 1.6rem; color: #ffffff; }
-.stat-label { color: #cbd5e1; }
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
-}
-
-/* Make cards glossy like dashboard, but scoped here */
-.attendance-page .card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e5e7eb;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-}
-
-.attendance-page .card-title { color: #ffffff; }
-
-/* Simple list styles */
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.list-item { display: flex; align-items: center; justify-content: space-between; }
-
-.pill {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #e5e7eb;
-  font-weight: 700;
-}
-.pill.success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.35); color: #86efac; }
-.pill.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.35); color: #fca5a5; }
-
-/* Mount animations */
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes riseIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
-.mount-fade { animation: fadeIn 320ms ease forwards; }
-.mount-rise { animation: riseIn 420ms ease forwards; }
-
-/* Responsive */
-@media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } }
-
-

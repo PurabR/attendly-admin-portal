@@ -182,3 +182,112 @@
   .dashboard-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* New Grid Layout */
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Left takes 2 parts, Right takes 1 part */
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 900px) {
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-col, .side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Modern QR Section */
+.qr-section-modern {
+  text-align: center;
+  padding: 10px;
+}
+.qr-placeholder-modern {
+  border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 30px;
+  color: #64748b;
+  margin-top: 20px;
+}
+.big-btn {
+  width: 100%;
+  max-width: 250px;
+  padding: 12px;
+  font-size: 1.1rem;
+}
+
+/* Mini Stats */
+.stats-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.stat-card-mini {
+  background: rgba(30, 41, 59, 0.5);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  text-align: center;
+}
+
+/* Schedule List */
+.schedule-item {
+  display: flex;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  align-items: center;
+}
+.time-box {
+  background: rgba(99, 102, 241, 0.1);
+  color: #818cf8;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.course-name { color: #fff; margin: 0; font-weight: 500; }
+.room-name { color: #64748b; margin: 0; font-size: 0.85rem; }
+
+/* Activity Feed */
+.activity-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.activity-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #34d399; /* Green dot */
+  border-radius: 50%;
+  margin-top: 6px;
+}
+.activity-text { color: #e2e8f0; margin: 0; }
+.activity-time { color: #64748b; font-size: 0.8rem; margin: 5px 0 0 0; }
+
+.full-width { width: 100%; margin-bottom: 10px; }
+
+/* Add this to Dashboard.css */
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7); /* Nice purple gradient */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}

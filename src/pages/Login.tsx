@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import logoImage from '../images/logo.png'; // Make sure this path is correct
+import { Link } from 'react-router-dom';
 
 // --- Firebase Imports ---
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -147,6 +148,16 @@ function Login() {
             <button type="submit" className="login-button" disabled={loading}>
               {loading ? 'Signing in...' : 'Continue'}
             </button>
+
+            {/* --- ADD THIS LINK SECTION --- */}
+            <div className="form-row" style={{justifyContent: 'center', marginTop: '20px'}}>
+              <span style={{color: '#64748b'}}>New Professor? </span>
+              <Link to="/register" style={{color: '#6366f1', fontWeight: '600', marginLeft: '5px'}}>
+                Create Account
+              </Link>
+            </div>
+            {/* --------------------------- */}
+
           </form>
         </section>
       </div>
