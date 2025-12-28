@@ -4,7 +4,7 @@ import Card from '../components/Card';
 import QRCode from 'react-qr-code';
 import './Dashboard.css';
 
-// --- Firebase Imports ---
+
 import { db, auth } from '../firebaseConfig'; 
 import { 
   collection, 
@@ -22,21 +22,21 @@ import { signOut } from 'firebase/auth';
 function Dashboard() {
   const navigate = useNavigate();
 
-  // --- States ---
+
   const [qrValue, setQrValue] = useState<string>('');
   const [secondsLeft, setSecondsLeft] = useState<number>(30);
   const countdownRef = useRef<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   
-  // --- Live Attendance States ---
+
   const [attendeeCount, setAttendeeCount] = useState<number>(0);
   const [lastScannedName, setLastScannedName] = useState<string>('');
   
-  // Ref to track the previous count (to detect INCREASES)
+
   const prevCountRef = useRef<number>(0);
 
-  // --- User Profile State ---
+
   const [userName, setUserName] = useState<string>('Professor');
   const [userRole, setUserRole] = useState<string>('');
 
@@ -60,11 +60,11 @@ function Dashboard() {
         const snapshot = await getDocs(q);
         
         if (!snapshot.empty) {
-          // Found a recent session!
+        
           const latestDoc = snapshot.docs[0];
           setQrValue(latestDoc.id);
           
-          // Restore timer logic (optional visual sync)
+      
           const expiresAt = latestDoc.data().expiresAt.toDate();
           const secondsRemaining = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
           if (secondsRemaining > 0) {
@@ -76,11 +76,10 @@ function Dashboard() {
       }
     };
 
-    // Small delay to ensure Auth is ready
+
     setTimeout(restoreSession, 1000);
   }, []);
 
-  // --- 1. Fetch User Profile ---
   useEffect(() => {
     const fetchProfile = async () => {
       const user = auth.currentUser;
@@ -100,7 +99,7 @@ function Dashboard() {
     fetchProfile();
   }, []);
 
-  // --- 2. LIVE LISTENER (The Core Logic) ---
+
   useEffect(() => {
     if (!qrValue) return;
 
@@ -113,12 +112,12 @@ function Dashboard() {
         const currentAttendees: string[] = data.attendees || [];
         const newCount = currentAttendees.length;
 
-        // Update the big number
+     
         setAttendeeCount(newCount);
 
-        // CHECK: Did the count go UP? (New student scanned)
+        
         if (newCount > prevCountRef.current) {
-          // Get the ID of the last person added
+         
           const latestStudentId = currentAttendees[newCount - 1];
           console.log("✨ New Scan Detected! ID:", latestStudentId);
           
@@ -128,7 +127,7 @@ function Dashboard() {
               const studentName = userSnap.data().name || "Unknown Student";
               setLastScannedName(studentName);
               
-              // Clear name after 4 seconds
+
               setTimeout(() => setLastScannedName(''), 4000);
             }
           } catch (err) {
@@ -136,7 +135,7 @@ function Dashboard() {
           }
         }
 
-        // Update ref for next time
+
         prevCountRef.current = newCount;
       }
     });
@@ -144,13 +143,13 @@ function Dashboard() {
     return () => unsubscribe();
   }, [qrValue]); 
 
-  // --- 3. Generate QR Function ---
+
   const generateQR = async () => {
     setLoading(true);
     setError('');
     setAttendeeCount(0);
     setLastScannedName('');
-    prevCountRef.current = 0; // Reset tracker
+    prevCountRef.current = 0; 
 
     if (countdownRef.current) {
       window.clearInterval(countdownRef.current);
@@ -205,7 +204,7 @@ function Dashboard() {
     };
   }, []);
 
-  // --- Helper: Logout ---
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -215,7 +214,7 @@ function Dashboard() {
     }
   };
 
-  // --- Helper: Initials ---
+
   const getInitials = (name: string) => {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -234,7 +233,7 @@ function Dashboard() {
     <div className="dashboard-page">
       <div className="gradient-bg" />
       
-      {/* HEADER */}
+
       <header className="dashboard-header mount-fade" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div className="profile-avatar">{getInitials(userName)}</div>
@@ -248,13 +247,13 @@ function Dashboard() {
         </button>
       </header>
 
-      {/* MAIN GRID */}
+
       <div className="dashboard-content-grid mount-rise">
         
-        {/* --- LEFT COLUMN --- */}
+
         <div className="main-col">
           
-          {/* QR Card */}
+
           <Card title="Generate Attendance QR">
             <div className="qr-section-modern">
                <p className="card-desc">Start a live attendance session for your current class.</p>
@@ -268,7 +267,7 @@ function Dashboard() {
 
                <div className="qr-display-area" style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'center', marginTop: '30px' }}>
                   
-                  {/* 1. The QR Code */}
+
                   {qrValue ? (
                       <div className="qr-active-wrapper">
                          <QRCode value={qrValue} size={220} />
@@ -283,7 +282,7 @@ function Dashboard() {
                       </div>
                   )}
 
-                  {/* 2. BIG LIVE COUNTER (Only visible when QR is active) */}
+
                   {qrValue && (
                     <div className="live-counter-box mount-rise">
                         <div style={{fontSize: '5rem', fontWeight: '800', color: '#4ade80', lineHeight: 1}}>
@@ -293,7 +292,7 @@ function Dashboard() {
                             Students Present
                         </div>
 
-                        {/* 3. LIVE NAME TOAST */}
+
                         <div style={{height: '40px'}}> 
                             {lastScannedName && (
                                 <div className="scanned-toast mount-rise">
@@ -308,7 +307,7 @@ function Dashboard() {
             </div>
           </Card>
 
-          {/* Recent Activity */}
+
           <Card title="Recent Activity">
             <div className="activity-list">
               {recentActivity.map(act => (
@@ -324,7 +323,7 @@ function Dashboard() {
           </Card>
         </div>
 
-        {/* --- RIGHT COLUMN --- */}
+
         <div className="side-col">
            <div className="stats-mini-grid">
               <div className="stat-card-mini">

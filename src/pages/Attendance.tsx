@@ -43,7 +43,7 @@ function Attendance() {
 
   // --- 1. Fetch Real Sessions ---
   useEffect(() => {
-    // We use onAuthStateChanged to ensure we wait for the user to be logged in
+
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (user) {
         try {
