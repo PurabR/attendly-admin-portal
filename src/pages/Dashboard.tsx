@@ -1,38 +1,84 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import QRCode from 'react-qr-code';
 import './Dashboard.css';
 
 // --- Firebase Imports ---
 import { db, auth } from '../firebaseConfig'; 
-import { collection, addDoc, Timestamp, doc, onSnapshot, getDoc } from 'firebase/firestore'; 
-import { signOut } from 'firebase/auth'; // Import signOut
+import { 
+  collection, 
+  addDoc, 
+  Timestamp, 
+  doc, 
+  onSnapshot, 
+  getDoc, 
+  query, 
+  where, 
+  getDocs 
+} from 'firebase/firestore'; 
+import { signOut } from 'firebase/auth';
 
 function Dashboard() {
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
 
-  // --- Existing States ---
+  // --- States ---
   const [qrValue, setQrValue] = useState<string>('');
   const [secondsLeft, setSecondsLeft] = useState<number>(30);
   const countdownRef = useRef<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  
+  // --- Live Attendance States ---
   const [attendeeCount, setAttendeeCount] = useState<number>(0);
+  const [lastScannedName, setLastScannedName] = useState<string>('');
+  
+  // Ref to track the previous count (to detect INCREASES)
+  const prevCountRef = useRef<number>(0);
 
   // --- User Profile State ---
   const [userName, setUserName] = useState<string>('Professor');
   const [userRole, setUserRole] = useState<string>('');
 
-  // --- NEW: Handle Logout ---
-  const handleLogout = async () => {
-    try {
-      await signOut(auth); // Firebase Sign Out
-      navigate('/'); // Redirect to Login Page
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
+  // --- 0. RESTORE SESSION ON RELOAD ---
+  // This looks for any session created in the last 5 minutes so you don't lose it on refresh.
+  useEffect(() => {
+    const restoreSession = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const fiveMinutesAgo = new Date();
+      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+      
+      try {
+        const q = query(
+          collection(db, "attendance_sessions"),
+          where("professorId", "==", user.uid),
+          where("createdAt", ">", Timestamp.fromDate(fiveMinutesAgo))
+        );
+
+        const snapshot = await getDocs(q);
+        
+        if (!snapshot.empty) {
+          // Found a recent session!
+          const latestDoc = snapshot.docs[0];
+          setQrValue(latestDoc.id);
+          
+          // Restore timer logic (optional visual sync)
+          const expiresAt = latestDoc.data().expiresAt.toDate();
+          const secondsRemaining = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
+          if (secondsRemaining > 0) {
+            setSecondsLeft(secondsRemaining);
+          }
+        }
+      } catch (err) {
+        console.error("Error restoring session:", err);
+      }
+    };
+
+    // Small delay to ensure Auth is ready
+    setTimeout(restoreSession, 1000);
+  }, []);
 
   // --- 1. Fetch User Profile ---
   useEffect(() => {
@@ -54,25 +100,58 @@ function Dashboard() {
     fetchProfile();
   }, []);
 
-  // --- 2. Live Update Effect ---
+  // --- 2. LIVE LISTENER (The Core Logic) ---
   useEffect(() => {
     if (!qrValue) return;
+
+    console.log("🟢 Live Listener Active for:", qrValue);
     const sessionDocRef = doc(db, "attendance_sessions", qrValue);
-    const unsubscribe = onSnapshot(sessionDocRef, (snapshot) => {
+    
+    const unsubscribe = onSnapshot(sessionDocRef, async (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        const currentAttendees = data.attendees || [];
-        setAttendeeCount(currentAttendees.length);
+        const currentAttendees: string[] = data.attendees || [];
+        const newCount = currentAttendees.length;
+
+        // Update the big number
+        setAttendeeCount(newCount);
+
+        // CHECK: Did the count go UP? (New student scanned)
+        if (newCount > prevCountRef.current) {
+          // Get the ID of the last person added
+          const latestStudentId = currentAttendees[newCount - 1];
+          console.log("✨ New Scan Detected! ID:", latestStudentId);
+          
+          try {
+            const userSnap = await getDoc(doc(db, "users", latestStudentId));
+            if (userSnap.exists()) {
+              const studentName = userSnap.data().name || "Unknown Student";
+              setLastScannedName(studentName);
+              
+              // Clear name after 4 seconds
+              setTimeout(() => setLastScannedName(''), 4000);
+            }
+          } catch (err) {
+            console.error("Error fetching name:", err);
+          }
+        }
+
+        // Update ref for next time
+        prevCountRef.current = newCount;
       }
     });
-    return () => unsubscribe();
-  }, [qrValue]);
 
-  // --- Generate QR Function ---
+    return () => unsubscribe();
+  }, [qrValue]); 
+
+  // --- 3. Generate QR Function ---
   const generateQR = async () => {
     setLoading(true);
     setError('');
     setAttendeeCount(0);
+    setLastScannedName('');
+    prevCountRef.current = 0; // Reset tracker
+
     if (countdownRef.current) {
       window.clearInterval(countdownRef.current);
       countdownRef.current = null;
@@ -95,9 +174,7 @@ function Dashboard() {
       };
       
       const docRef = await addDoc(collection(db, "attendance_sessions"), sessionData);
-      const newSessionId = docRef.id;
-      
-      setQrValue(newSessionId);
+      setQrValue(docRef.id);
       setSecondsLeft(30);
 
       countdownRef.current = window.setInterval(() => {
@@ -128,14 +205,19 @@ function Dashboard() {
     };
   }, []);
 
-  // --- Helper: Get Initials ---
+  // --- Helper: Logout ---
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  // --- Helper: Initials ---
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const todaySchedule = [
@@ -154,27 +236,22 @@ function Dashboard() {
       
       {/* HEADER */}
       <header className="dashboard-header mount-fade" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        {/* LEFT SIDE: Welcome */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div className="profile-avatar">
-            {getInitials(userName)}
-          </div>
+          <div className="profile-avatar">{getInitials(userName)}</div>
           <div>
             <h1 className="dash-title">Welcome back, {userName.split(' ')[0]} 👋</h1>
             <p className="dash-subtitle">{userRole} • Here’s what’s happening today</p>
           </div>
         </div>
-
-        {/* RIGHT SIDE: Logout Button */}
         <button className="btn ghost" onClick={handleLogout} style={{border: '1px solid rgba(255,255,255,0.2)'}}>
             Logout ↪
         </button>
       </header>
 
-      {/* MAIN GRID LAYOUT */}
+      {/* MAIN GRID */}
       <div className="dashboard-content-grid mount-rise">
         
-        {/* --- LEFT COLUMN (2/3 width) --- */}
+        {/* --- LEFT COLUMN --- */}
         <div className="main-col">
           
           {/* QR Card */}
@@ -189,11 +266,15 @@ function Dashboard() {
                   {qrValue && <span className="live-badge">🔴 Live</span>}
                </div>
 
-               <div className="qr-display-area">
+               <div className="qr-display-area" style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'center', marginTop: '30px' }}>
+                  
+                  {/* 1. The QR Code */}
                   {qrValue ? (
                       <div className="qr-active-wrapper">
-                         <QRCode value={qrValue} size={180} />
-                         <p className="timer">{secondsLeft}s remaining</p>
+                         <QRCode value={qrValue} size={220} />
+                         <p className="timer" style={{color: secondsLeft < 10 ? '#ff4d4d' : '#fff'}}>
+                           {secondsLeft}s remaining
+                         </p>
                       </div>
                   ) : (
                       <div className="qr-placeholder-modern">
@@ -201,11 +282,33 @@ function Dashboard() {
                         <p>QR Code will appear here</p>
                       </div>
                   )}
+
+                  {/* 2. BIG LIVE COUNTER (Only visible when QR is active) */}
+                  {qrValue && (
+                    <div className="live-counter-box mount-rise">
+                        <div style={{fontSize: '5rem', fontWeight: '800', color: '#4ade80', lineHeight: 1}}>
+                            {attendeeCount}
+                        </div>
+                        <div style={{color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', marginBottom: '20px'}}>
+                            Students Present
+                        </div>
+
+                        {/* 3. LIVE NAME TOAST */}
+                        <div style={{height: '40px'}}> 
+                            {lastScannedName && (
+                                <div className="scanned-toast mount-rise">
+                                    <span style={{marginRight: '8px'}}>✨</span> 
+                                    {lastScannedName} just joined!
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                  )}
                </div>
             </div>
           </Card>
 
-          {/* Recent Activity Feed */}
+          {/* Recent Activity */}
           <Card title="Recent Activity">
             <div className="activity-list">
               {recentActivity.map(act => (
@@ -221,21 +324,19 @@ function Dashboard() {
           </Card>
         </div>
 
-        {/* --- RIGHT COLUMN (1/3 width) --- */}
+        {/* --- RIGHT COLUMN --- */}
         <div className="side-col">
-           {/* Stats Row */}
            <div className="stats-mini-grid">
               <div className="stat-card-mini">
                 <div className="stat-value">96%</div>
-                <div className="stat-label">Attendance</div>
+                <div className="stat-label">Avg. Attendance</div>
               </div>
               <div className="stat-card-mini">
                 <div className="stat-value">{attendeeCount}</div>
-                <div className="stat-label">Active</div>
+                <div className="stat-label">Active Session</div>
               </div>
            </div>
 
-           {/* Today's Schedule */}
            <Card title="Today's Schedule">
               <div className="schedule-list">
                 {todaySchedule.map((cls, idx) => (
